@@ -173,16 +173,16 @@ static void * KVOContext = &KVOContext;
 {
     BOOL title_is_nil = (title == nil);
     BOOL location_is_blank = [[location absoluteString] isEqualToString:@"about:blank"];
-    
+
     BOOL reload = (title_is_nil || location_is_blank);
-    
+
 #ifdef DEBUG
     NSLog(@"%@", @"CDVWKWebViewEngine shouldReloadWebView::");
     NSLog(@"CDVWKWebViewEngine shouldReloadWebView title: %@", title);
     NSLog(@"CDVWKWebViewEngine shouldReloadWebView location: %@", [location absoluteString]);
     NSLog(@"CDVWKWebViewEngine shouldReloadWebView reload: %u", reload);
 #endif
-    
+
     return reload;
 }
 
@@ -455,6 +455,15 @@ static void * KVOContext = &KVOContext;
     }
 
     return decisionHandler(NO);
+}
+
+- (void)webView:(WKWebView *)webView didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler {
+    NSLog(@"Allow all");
+    SecTrustRef serverTrust = challenge.protectionSpace.serverTrust;
+    CFDataRef exceptions = SecTrustCopyExceptions (serverTrust);
+    SecTrustSetExceptions (serverTrust, exceptions);
+    CFRelease (exceptions);
+    completionHandler (NSURLSessionAuthChallengeUseCredential, [NSURLCredential credentialForTrust:serverTrust]);
 }
 
 @end
